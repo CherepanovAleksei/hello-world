@@ -1,0 +1,82 @@
+import time
+import pyautogui
+import cv2
+from matplotlib import pyplot as plt
+import numpy as np
+from pynput.mouse import Button, Controller
+from pynput import mouse
+import sys
+import random
+
+while True:
+    print('1cycle')
+    exit_poplavok_flag = 0
+    mouse = Controller()
+
+    time.sleep(2)
+    random_x = random.randint(745, 755)
+    random_y = random.randint(435, 445)
+    mouse.position = (random_x, random_y)
+    mouse.press(Button.left)
+    print('zabros')
+    time.sleep(0.5)
+    mouse.release(Button.left)
+    mouse.position = (750, 350)
+    time.sleep(1)
+    screen_for_flag_poplavok = pyautogui.screenshot('screen_for_flag_poplavok.png')
+    screen_for_flag_poplavok = cv2.imread('screen_for_flag_poplavok.png', 0)
+    poplavok_template = cv2.imread('pop1.png', 0)
+    # метод и нюансы для поиска
+    poplavok_method = cv2.TM_CCORR_NORMED
+    poplavok_result = cv2.matchTemplate(screen_for_flag_poplavok, poplavok_template, poplavok_method)
+    min_valf, max_valf, min_locf, max_locf = cv2.minMaxLoc(poplavok_result)
+    # конец
+    # ищем поплавок и тянем при условии
+    while True:
+        print('2cycle')
+        if exit_poplavok_flag == 1:
+            break
+        screen_part_for_poplavok = pyautogui.screenshot('screen_for_flag_poplavok.png', region = ((max_locf[0] + 15, max_locf[1] + 15, 25, 7)))
+        screen_part_for_poplavok_canny = cv2.imread('screen_for_flag_poplavok.png', 0)
+        screen_part_for_poplavok_canny = cv2.Canny(screen_part_for_poplavok_canny, 100, 200)
+        screen_part_for_poplavok_canny_ar = np.array(screen_part_for_poplavok_canny)
+        screen_part_for_poplavok_canny_ar_mean = np.mean(screen_part_for_poplavok_canny_ar)
+        print(screen_part_for_poplavok_canny_ar_mean)
+        #plt.imshow(screen_part_for_poplavok_canny, cmap = 'gray')
+        #plt.show()
+        if screen_part_for_poplavok_canny_ar_mean <= 2:
+                mouse.press(Button.left)
+                time.sleep(0.1)
+                mouse.release(Button.left)
+                # начинаем мини игру
+                time.sleep(0.5)
+                exit_poplavok_flag = 1
+                while True:
+                    print('3cycle')
+                    poplavok_game_template = cv2.imread('ppp.png', 0)
+                    screen_poplavok_game = pyautogui.screenshot('screen_poplavok_game.png', region = (870, 545, 190, 25))
+                    screen_poplavok_game = cv2.imread('screen_poplavok_game.png', 0)
+                    poplavok_game_method = cv2.TM_CCORR_NORMED
+                    poplavok_game_result = cv2.matchTemplate(screen_poplavok_game, poplavok_game_template, poplavok_game_method)
+                    min_valg, max_valg, min_locg, max_locg = cv2.minMaxLoc(poplavok_game_result)
+                    
+                    screen_rybka_game = pyautogui.screenshot('screen_rybka_game.png', region = (860, 580, 4, 12))
+                    screen_rybka_game = cv2.imread('screen_rybka_game.png', 0)
+                    screen_rybka_game_ar = np.array(screen_rybka_game)
+                    screen_rybka_game_ar_mean = np.mean(screen_rybka_game_ar)
+                    koor_rybki = screen_rybka_game_ar_mean       
+                    koor_x = max_locg[0]
+                    print(koor_rybki)
+                    if koor_rybki <= 75:
+                        random_numb = random.randint(1, 3)
+                        print(random_numb)
+                        mouse.release(Button.left)
+                        time.sleep(random_numb)
+                        exit_poplavok_flag = 1
+                        break
+                    if koor_x <= 100:
+                        mouse.press(Button.left)
+                        print('тянуть', koor_x, koor_rybki)                            
+                    elif koor_x >= 103:
+                        mouse.release(Button.left)
+                        print('отпустить', koor_x, koor_rybki)
